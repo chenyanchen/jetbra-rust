@@ -2,36 +2,15 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 use application::App;
-use install::{InstallArgs, InstallHandler, UninstallArgs, UninstallHandler};
+use install::{InstallArgs, Installer};
+use uninstall::{UninstallArgs, Uninstaller};
 
 mod application;
 mod install;
-
-#[derive(Parser)]
-#[command(
-    name = "jetbra",
-    author = "Yanchen Chen <yanchen1610@gmail.com>",
-    version = "0.1.3",
-    about = "Filter network for Java programs",
-    long_about = None,
-)]
-struct Cli {
-    #[command(subcommand)]
-    command: Option<Command>,
-}
-
-#[derive(Subcommand)]
-enum Command {
-    /// List all available applications
-    List,
-    /// Install applications
-    Install(InstallArgs),
-    /// Uninstall applications
-    Uninstall(UninstallArgs),
-}
+mod uninstall;
 
 fn main() -> Result<()> {
-    let jetbra_args = Cli::parse();
+    let args = Args::parse();
     let apps = vec![
         App {
             name: "IntelliJ IDEA".to_string(),
@@ -44,17 +23,16 @@ fn main() -> Result<()> {
             code: "PCP".to_string(),
         },
     ];
-    let jetbra_handler = JetbraHandler::new(jetbra_args, apps);
-    jetbra_handler.run()
+    Jetbra::new(args, apps).run()
 }
 
-struct JetbraHandler {
-    args: Cli,
+struct Jetbra {
+    args: Args,
     apps: Vec<App>,
 }
 
-impl JetbraHandler {
-    fn new(args: Cli, apps: Vec<App>) -> Self {
+impl Jetbra {
+    fn new(args: Args, apps: Vec<App>) -> Self {
         Self { args, apps }
     }
 
@@ -64,11 +42,34 @@ impl JetbraHandler {
                 Command::List => self.apps.iter().for_each(|app| {
                     println!("{} ({})", app.name, app.short);
                 }),
-                Command::Install(args) => InstallHandler::new(self.apps.clone()).run(args)?,
-                Command::Uninstall(args) => UninstallHandler::new(self.apps.clone()).run(args)?,
+                Command::Install(args) => Installer::new(self.apps.clone()).install(args)?,
+                Command::Uninstall(args) => Uninstaller::new(self.apps.clone()).uninstall(args)?,
             },
             None => println!("Use --help to see the usage"),
         }
         Ok(())
     }
+}
+
+#[derive(Parser)]
+#[command(
+    name = "jetbra",
+    author = "Yanchen Chen <yanchen1610@gmail.com>",
+    version = "0.1.3",
+    about = "Filter network for Java programs",
+    long_about = None,
+)]
+struct Args {
+    #[command(subcommand)]
+    command: Option<Command>,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// List all available applications
+    List,
+    /// Install applications
+    Install(InstallArgs),
+    /// Uninstall applications
+    Uninstall(UninstallArgs),
 }
