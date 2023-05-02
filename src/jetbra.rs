@@ -57,10 +57,10 @@ pub struct Args {
 
 #[derive(Subcommand)]
 enum Command {
-    /// List all available applications
+    /// List all supported applications
     List,
-    /// Install applications
+    /// Install jetbra for current user
     Install(InstallArgs),
-    /// Uninstall applications
+    /// Uninstall jetbra for current user
     Uninstall(UninstallArgs),
 }
