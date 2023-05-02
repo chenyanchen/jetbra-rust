@@ -9,3 +9,4 @@ authors = ["Yanchen Chen <yanchen1610@gamil.com>"]
 [dependencies]
 anyhow = "1.0.71"
 clap = { version = "4.2.5", features = ["derive"] }
+enum-iterator = "1.4.0"

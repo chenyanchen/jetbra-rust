@@ -1,48 +1,39 @@
 use anyhow::Result;
 use clap::Args;
 
-use crate::application::{find_app, App};
+use crate::application::{App, Apps};
 
-pub struct Uninstaller {
-    apps: Vec<App>,
-}
+pub struct Uninstaller {}
 
-#[derive(Args, Debug)]
+#[derive(Args)]
 pub struct UninstallArgs {
     /// Specify applications to uninstall
-    #[arg(short, long)]
-    app: Option<Vec<String>>,
+    #[arg(short, long, value_enum)]
+    app: Option<Vec<Apps>>,
 }
 
 impl Uninstaller {
-    pub fn new(apps: Vec<App>) -> Self {
-        Self { apps }
+    pub fn new() -> Self {
+        Self {}
     }
 
     pub fn uninstall(&self, args: &UninstallArgs) -> Result<()> {
         match &args.app {
-            Some(apps) => apps
-                .iter()
-                .try_for_each(|app| match find_app(&self.apps, app) {
-                    None => {
-                        println!("Unknown application {app}");
-                        Ok(())
-                    }
-                    Some(app) => Self::uninstall_app(app),
-                }),
+            Some(apps) => apps.to_owned(), // uninstall specified apps
             None => {
-                // uninstall all apps and dependencies
-                self.apps.iter().try_for_each(Self::uninstall_app)?;
-                Self::remove_dependencies()
+                Self::remove_dependencies()?; // remove dependencies
+                Apps::all() // uninstall all apps
             }
         }
-    }
-
-    fn uninstall_app(app: &App) -> Result<()> {
-        todo!("uninstall {}", app.name)
+        .iter()
+        .try_for_each(|&app| Self::uninstall_app(&app.into()))
     }
 
     fn remove_dependencies() -> Result<()> {
         todo!("remove dependencies")
+    }
+
+    fn uninstall_app(app: &App) -> Result<()> {
+        todo!("uninstall {}", app.name)
     }
 }

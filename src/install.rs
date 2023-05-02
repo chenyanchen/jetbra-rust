@@ -1,40 +1,30 @@
 use anyhow::Result;
 use clap::Args;
 
-use crate::application::{find_app, App};
+use crate::application::{App, Apps};
 
-pub struct Installer {
-    apps: Vec<App>,
-}
+pub struct Installer {}
 
-#[derive(Args, Debug)]
+#[derive(Args)]
 pub struct InstallArgs {
     /// Specify applications to install
-    #[arg(short, long)]
-    app: Option<Vec<String>>,
+    #[arg(short, long, value_enum)]
+    app: Option<Vec<Apps>>,
 }
 
 impl Installer {
-    pub fn new(apps: Vec<App>) -> Self {
-        Self { apps }
+    pub fn new() -> Self {
+        Self {}
     }
 
     pub fn install(&self, args: &InstallArgs) -> Result<()> {
         Self::install_dependencies()?;
-        let pending_apps = match &args.app {
-            Some(apps) => {
-                let mut pending_apps = Vec::new();
-                apps.iter().for_each(|app| match find_app(&self.apps, app) {
-                    None => println!("Unknown application {app}"),
-                    Some(app) => pending_apps.push(app),
-                });
-                pending_apps
-            }
-            None => self.apps.iter().collect(), // install all apps
-        };
-        pending_apps
-            .iter()
-            .try_for_each(|app| Self::install_app(app))
+        match &args.app {
+            Some(apps) => apps.to_owned(), // install specified apps
+            None => Apps::all(),           // install all apps
+        }
+        .iter()
+        .try_for_each(|&app| Self::install_app(&app.into()))
     }
 
     fn install_dependencies() -> Result<()> {
