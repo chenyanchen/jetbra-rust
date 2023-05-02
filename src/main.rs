@@ -23,21 +23,20 @@ fn main() -> Result<()> {
             code: "PCP".to_string(),
         },
     ];
-    Jetbra::new(args, apps).run()
+    Jetbra::new(apps).run(args)
 }
 
 struct Jetbra {
-    args: Args,
     apps: Vec<App>,
 }
 
 impl Jetbra {
-    fn new(args: Args, apps: Vec<App>) -> Self {
-        Self { args, apps }
+    fn new(apps: Vec<App>) -> Self {
+        Self { apps }
     }
 
-    fn run(&self) -> Result<()> {
-        match &self.args.command {
+    fn run(&self, args: Args) -> Result<()> {
+        match &args.command {
             Some(cmd) => match cmd {
                 Command::List => self.apps.iter().for_each(|app| {
                     println!("{} ({})", app.name, app.short);
