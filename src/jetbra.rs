@@ -1,4 +1,6 @@
-use anyhow::Result;
+use std::path::PathBuf;
+
+use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
 
 use crate::application::{App, Apps};
@@ -19,12 +21,24 @@ impl Jetbra {
                     let app: App = app.into();
                     println!("{} ({})", app.name, app.short);
                 }),
-                Command::Install(args) => Installer::new().install(args)?,
-                Command::Uninstall(args) => Uninstaller::new().uninstall(args)?,
+                Command::Install(args) => Installer::new(Self::jetbrains_dir()?).install(args)?,
+                Command::Uninstall(args) => {
+                    Uninstaller::new(Self::jetbrains_dir()?).uninstall(args)?
+                }
             },
             None => println!("Use --help to see the usage"),
         }
         Ok(())
+    }
+
+    pub fn jetbrains_dir() -> Result<PathBuf> {
+        let home_dir = dirs::home_dir().ok_or(anyhow!("cannot find home directory"))?;
+        // TODO: support Linux and Windows
+        let jetbrains_dir = home_dir
+            .join("Library")
+            .join("Application Support")
+            .join("JetBrains");
+        Ok(jetbrains_dir)
     }
 }
 

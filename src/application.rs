@@ -6,6 +6,7 @@ pub enum Apps {
     Idea,
     Clion,
     Goland,
+    Pycharm,
 }
 
 impl Apps {
@@ -25,7 +26,7 @@ impl From<Apps> for App {
     fn from(app: Apps) -> Self {
         match app {
             Apps::Idea => App {
-                name: "IntelliJ IDEA".into(),
+                name: "IntelliJ Idea".into(),
                 short: "idea".into(),
                 code: "IIU".into(),
             },
@@ -38,6 +39,11 @@ impl From<Apps> for App {
                 name: "GoLand".into(),
                 short: "goland".into(),
                 code: "GO".into(),
+            },
+            Apps::Pycharm => App {
+                name: "PyCharm".into(),
+                short: "pycharm".into(),
+                code: "PC".into(),
             },
         }
     }
