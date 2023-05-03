@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Context, Result};
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 
 use crate::application::{App, Apps};
 use crate::install::{InstallArgs, Installer};
@@ -17,21 +17,21 @@ impl Jetbra {
     pub fn run(&self, args: Args) -> Result<()> {
         match &args.command {
             Some(cmd) => self.run_command(cmd)?,
-            None => println!("Use --help to see the usage"),
+            None => Args::command().print_help()?,
         }
         Ok(())
     }
 
-    fn run_command(&self, cmd: &Command) -> Result<()> {
+    fn run_command(&self, cmd: &Commands) -> Result<()> {
         match cmd {
-            Command::List => Apps::all().iter().for_each(|&app| {
+            Commands::List => Apps::all().iter().for_each(|&app| {
                 let app: App = app.into();
                 println!("{} ({})", app.name, app.short);
             }),
-            Command::Install(args) => Installer::new(Self::jetbrains_dir()?)
+            Commands::Install(args) => Installer::new(Self::jetbrains_dir()?)
                 .install(args)
                 .context("Failed to install")?,
-            Command::Uninstall(args) => Uninstaller::new(Self::jetbrains_dir()?)
+            Commands::Uninstall(args) => Uninstaller::new(Self::jetbrains_dir()?)
                 .uninstall(args)
                 .context("Failed to uninstall")?,
         }
@@ -53,11 +53,11 @@ impl Jetbra {
 #[command(author, version, about, long_about = None,)]
 pub struct Args {
     #[command(subcommand)]
-    command: Option<Command>,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
-enum Command {
+enum Commands {
     /// List all supported applications
     List,
     /// Install jetbra for current user
