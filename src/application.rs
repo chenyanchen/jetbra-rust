@@ -32,6 +32,12 @@ pub struct App {
     pub code: String,
 }
 
+impl App {
+    pub fn concat_name(&self) -> String {
+        self.name.replace(' ', "")
+    }
+}
+
 impl From<Apps> for App {
     fn from(app: Apps) -> Self {
         match app {

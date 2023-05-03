@@ -7,13 +7,10 @@ use crate::application::{App, Apps};
 use crate::install::{InstallArgs, Installer};
 use crate::uninstall::{UninstallArgs, Uninstaller};
 
+#[derive(Default)]
 pub struct Jetbra {}
 
 impl Jetbra {
-    pub fn new() -> Self {
-        Self {}
-    }
-
     pub fn run(&self, args: Args) -> Result<()> {
         match &args.command {
             Some(cmd) => self.run_command(cmd)?,
@@ -50,7 +47,7 @@ impl Jetbra {
 }
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None,)]
+#[command(author, version, about, long_about = None)]
 pub struct Args {
     #[command(subcommand)]
     command: Option<Commands>,

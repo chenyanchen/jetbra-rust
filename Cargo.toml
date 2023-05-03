@@ -9,7 +9,7 @@ description = "A CLI tool to activate JetBrains products"
 
 [dependencies]
 anyhow = "1.0.71"
-clap = { version = "4.2.5", features = ["derive"] }
+clap = { version = "4.2.7", features = ["derive"] }
 dirs = "5.0.1"
 enum-iterator = "1.4.0"
 flate2 = "1.0.26"

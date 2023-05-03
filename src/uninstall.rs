@@ -1,12 +1,11 @@
 use std::fs;
-use std::io::Write;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use clap::Args;
 
 use crate::application::{App, Apps};
-use crate::install::find_dirs_by_prefix;
+use crate::file;
 
 pub struct Uninstaller {
     jetbrains_dir: PathBuf,
@@ -39,7 +38,8 @@ impl Uninstaller {
         match &args.app {
             Some(apps) => apps.to_owned(), // uninstall specified apps
             None => {
-                self.remove_dependencies()?; // remove dependencies
+                self.remove_dependencies()
+                    .context("Failed to remove dependencies")?;
                 Apps::all() // uninstall all apps
             }
         }
@@ -48,7 +48,9 @@ impl Uninstaller {
     }
 
     fn remove_dependencies(&self) -> Result<()> {
-        fs::remove_dir_all(&self.plugins_dir)?;
+        if self.plugins_dir.exists() {
+            fs::remove_dir_all(&self.plugins_dir)?;
+        }
         Ok(())
     }
 
@@ -56,29 +58,19 @@ impl Uninstaller {
         let vmoptions_filename = format!("{}.vmoptions", app.short);
         let cert_filename = format!("{}.key", app.short);
 
-        for path in find_dirs_by_prefix(&self.jetbrains_dir, app.name.replace(' ', "").as_str())
+        for path in file::find_dirs_by_prefix(&self.jetbrains_dir, &app.concat_name())
             .context("Failed to find dirs by prefix")?
         {
-            self.remove_vmoptions(&path.join(vmoptions_filename.as_str()))
-                .context("Failed to remove vmoptions")?;
-            let _ = fs::remove_file(path.join(cert_filename.as_str()));
-        }
-        Ok(())
-    }
+            let vmoptions_filepath = path.join(&vmoptions_filename);
+            file::remove_lines_by_prefixes(&vmoptions_filepath, &self.vmoptions_prefixes)
+                .context("Failed to remove lines by prefixes")?;
 
-    fn remove_vmoptions(&self, vmoptions_path: &PathBuf) -> Result<()> {
-        let vmoptions = fs::read_to_string(vmoptions_path)?;
-        let mut buffer: Vec<u8> = Vec::with_capacity(vmoptions.len());
-        for line in vmoptions.lines() {
-            if !self
-                .vmoptions_prefixes
-                .iter()
-                .any(|prefix| line.starts_with(prefix))
-            {
-                writeln!(buffer, "{}", line)?;
+            let cert_filepath = path.join(&cert_filename);
+            if !cert_filepath.exists() {
+                continue;
             }
+            fs::remove_file(&cert_filepath).context("Failed to remove certificate")?;
         }
-        fs::write(vmoptions_path, buffer)?;
         Ok(())
     }
 }

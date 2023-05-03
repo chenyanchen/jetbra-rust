@@ -1,14 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
 
-use jetbra::{Args, Jetbra};
-
-mod application;
-mod install;
-mod jetbra;
-mod uninstall;
+use jetbra::jetbra::{Args, Jetbra};
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    Jetbra::new().run(args)
+    Jetbra::default().run(args)
 }

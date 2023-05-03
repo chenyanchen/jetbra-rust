@@ -1,7 +1,5 @@
 use std::fs;
-use std::fs::read_dir;
-use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use clap::Args;
@@ -9,6 +7,7 @@ use flate2::read::GzDecoder;
 use tar::Archive;
 
 use crate::application::{App, Apps};
+use crate::file;
 use crate::uninstall::Uninstaller;
 
 pub struct Installer {
@@ -30,7 +29,7 @@ pub struct InstallArgs {
 impl Installer {
     pub fn new(jetbrains_dir: PathBuf) -> Self {
         let netfilter_dir = jetbrains_dir.join("plugins").join("netfilter");
-        let netfilter_path = netfilter_dir.join("ja-netfilter.jar").as_path().to_owned();
+        let netfilter_path = netfilter_dir.join("ja-netfilter.jar");
         Self {
             jetbrains_dir: jetbrains_dir.clone(),
             netfilter_dir,
@@ -57,8 +56,7 @@ impl Installer {
     fn install_dependencies(&self) -> Result<()> {
         // Unpack netfilter.tar.gz to $(JetBrains)/plugins/netfilter
         let netfilter_tar_gz = include_bytes!("netfilter.tar.gz");
-        let gz = GzDecoder::new(netfilter_tar_gz.as_ref());
-        Archive::new(gz).unpack(&self.netfilter_dir)?;
+        Archive::new(GzDecoder::new(netfilter_tar_gz.as_ref())).unpack(&self.netfilter_dir)?;
         Ok(())
     }
 
@@ -71,34 +69,23 @@ impl Installer {
         let vmoptions_filename = format!("{}.vmoptions", app.short);
         let cert_filename = format!("{}.key", app.short);
 
-        for path in find_dirs_by_prefix(&self.jetbrains_dir, app.name.replace(' ', "").as_str())
+        for path in file::find_dirs_by_prefix(&self.jetbrains_dir, &app.concat_name())
             .context("Failed to find dirs by prefix")?
         {
             // Append vmoptions
-            self.append_lines(
-                path.join(&vmoptions_filename).as_path(),
-                &self.additional_vmoptions,
-            )?;
+            let vmoptions_filepath = path.join(&vmoptions_filename);
+            file::append_lines(vmoptions_filepath, &self.additional_vmoptions)
+                .context("Failed to append lines")?;
+
             // Update certificate file
-            let certificate = Self::build_certificate(app.code.clone());
-            fs::write(path.join(&cert_filename), certificate)
+            let cert_filepath = path.join(&cert_filename);
+            fs::write(cert_filepath, Self::build_certificate(&app.code))
                 .context("Failed write certificate")?;
         }
         Ok(())
     }
 
-    fn append_lines(&self, path: &Path, lines: &[String]) -> Result<()> {
-        let mut file = fs::OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open(path)?;
-        lines
-            .iter()
-            .try_for_each(|line| writeln!(file, "{}", line))?;
-        Ok(())
-    }
-
-    fn build_certificate(active_code: String) -> Vec<u8> {
+    fn build_certificate(active_code: &String) -> Vec<u8> {
         let header: Vec<u8> = [0xff; 2].to_vec();
         let mut body: Vec<u8> = Vec::from("<certificate-key>\n");
         body.append(&mut active_code.as_bytes().to_vec());
@@ -106,27 +93,9 @@ impl Installer {
     }
 }
 
-pub fn find_dirs_by_prefix(dir: &Path, prefix: &str) -> Result<Vec<PathBuf>> {
-    let dirs = read_dir(dir)?
-        .filter_map(|entry| {
-            let entry = entry.ok()?;
-            let path = entry.path();
-            if !path.is_dir() {
-                return None;
-            }
-            let file_name = entry.file_name();
-            if !file_name.to_str()?.starts_with(prefix) {
-                return None;
-            }
-            Some(path)
-        })
-        .collect();
-    Ok(dirs)
-}
-
 /// interleave byte to bytes
 /// ```
-/// interleave_byte("Hello".as_bytes(), 'a') -> "Haealalaoa"
+/// assert_eq!(interleave_byte("Hello".as_bytes(), 'a'), "Haealalaoa")
 /// ```
 fn interleave_byte(bytes: &[u8], byte: u8) -> Vec<u8> {
     bytes.iter().flat_map(|b| vec![*b, byte]).collect()
