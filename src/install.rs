@@ -102,7 +102,7 @@ impl Installer {
         let header: Vec<u8> = [0xff; 2].to_vec();
         let mut body: Vec<u8> = Vec::from("<certificate-key>\n");
         body.append(&mut active_code.as_bytes().to_vec());
-        [header, nested_byte(&body, 0x00)].concat()
+        [header, interleave_byte(&body, 0x00)].concat()
     }
 }
 
@@ -124,17 +124,12 @@ pub fn find_dirs_by_prefix(dir: &Path, prefix: &str) -> Result<Vec<PathBuf>> {
     Ok(dirs)
 }
 
-/// nested byte to bytes
+/// interleave byte to bytes
 /// ```
-/// nested_byte("Hello".as_bytes(), 'a') -> "Haealalaoa"
+/// interleave_byte("Hello".as_bytes(), 'a') -> "Haealalaoa"
 /// ```
-pub fn nested_byte(bytes: &[u8], byte: u8) -> Vec<u8> {
-    let mut result = Vec::with_capacity(bytes.len() * 2);
-    for b in bytes {
-        result.push(*b);
-        result.push(byte);
-    }
-    result
+fn interleave_byte(bytes: &[u8], byte: u8) -> Vec<u8> {
+    bytes.iter().flat_map(|b| vec![*b, byte]).collect()
 }
 
 #[cfg(test)]
@@ -142,9 +137,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn nested_test() {
+    fn interleave_test() {
         assert_eq!(
-            nested_byte("Hello".as_bytes(), b'a'),
+            interleave_byte("Hello".as_bytes(), b'a'),
             "Haealalaoa".as_bytes()
         );
     }
