@@ -3,6 +3,7 @@ name = "jetbra"
 version = "0.1.2"
 edition = "2021"
 authors = ["Yanchen Chen <yanchen1610@gamil.com>"]
+description = "A CLI tool to activate JetBrains products"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,3 +12,5 @@ anyhow = "1.0.71"
 clap = { version = "4.2.5", features = ["derive"] }
 dirs = "5.0.1"
 enum-iterator = "1.4.0"
+flate2 = "1.0.26"
+tar = "0.4.38"

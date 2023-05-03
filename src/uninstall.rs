@@ -2,7 +2,7 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Args;
 
 use crate::application::{App, Apps};
@@ -53,13 +53,15 @@ impl Uninstaller {
     }
 
     pub fn uninstall_app(&self, app: &App) -> Result<()> {
-        let mut vmoptions_filename = app.short.clone();
-        vmoptions_filename.push_str(".vmoptions");
+        let vmoptions_filename = format!("{}.vmoptions", app.short);
+        let cert_filename = format!("{}.key", app.short);
 
-        for path in find_dirs_by_prefix(&self.jetbrains_dir, app.name.replace(' ', "").as_str())? {
-            let vmoptions_path = path.join(vmoptions_filename.as_str());
-            self.remove_vmoptions(&vmoptions_path)?;
-            println!("uninstall app from: {:?}", vmoptions_path);
+        for path in find_dirs_by_prefix(&self.jetbrains_dir, app.name.replace(' ', "").as_str())
+            .context("Failed to find dirs by prefix")?
+        {
+            self.remove_vmoptions(&path.join(vmoptions_filename.as_str()))
+                .context("Failed to remove vmoptions")?;
+            let _ = fs::remove_file(path.join(cert_filename.as_str()));
         }
         Ok(())
     }

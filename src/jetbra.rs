@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use clap::{Parser, Subcommand};
 
 use crate::application::{App, Apps};
@@ -16,17 +16,24 @@ impl Jetbra {
 
     pub fn run(&self, args: Args) -> Result<()> {
         match &args.command {
-            Some(cmd) => match cmd {
-                Command::List => Apps::all().iter().for_each(|&app| {
-                    let app: App = app.into();
-                    println!("{} ({})", app.name, app.short);
-                }),
-                Command::Install(args) => Installer::new(Self::jetbrains_dir()?).install(args)?,
-                Command::Uninstall(args) => {
-                    Uninstaller::new(Self::jetbrains_dir()?).uninstall(args)?
-                }
-            },
+            Some(cmd) => self.run_command(cmd)?,
             None => println!("Use --help to see the usage"),
+        }
+        Ok(())
+    }
+
+    fn run_command(&self, cmd: &Command) -> Result<()> {
+        match cmd {
+            Command::List => Apps::all().iter().for_each(|&app| {
+                let app: App = app.into();
+                println!("{} ({})", app.name, app.short);
+            }),
+            Command::Install(args) => Installer::new(Self::jetbrains_dir()?)
+                .install(args)
+                .context("Failed to install")?,
+            Command::Uninstall(args) => Uninstaller::new(Self::jetbrains_dir()?)
+                .uninstall(args)
+                .context("Failed to uninstall")?,
         }
         Ok(())
     }
@@ -43,13 +50,7 @@ impl Jetbra {
 }
 
 #[derive(Parser)]
-#[command(
-    name = "jetbra",
-    author = "Yanchen Chen <yanchen1610@gmail.com>",
-    version = "0.1.3",
-    about = "Filter network for Java programs",
-    long_about = None,
-)]
+#[command(author, version, about, long_about = None,)]
 pub struct Args {
     #[command(subcommand)]
     command: Option<Command>,
