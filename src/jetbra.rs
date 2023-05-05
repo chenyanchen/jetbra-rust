@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Context, Result};
 use clap::{CommandFactory, Parser, Subcommand};
 
-use crate::application::{App, Apps};
+use crate::app::{App, Apps};
 use crate::install::{InstallArgs, Installer};
 use crate::uninstall::{UninstallArgs, Uninstaller};
 
@@ -12,9 +12,15 @@ pub struct Jetbra {}
 
 impl Jetbra {
     pub fn run(&self, args: Args) -> Result<()> {
+        let mut cmd = Args::command();
+        if args.author {
+            let author = cmd.get_author().unwrap();
+            println!("{}", author);
+            return Ok(());
+        }
         match &args.command {
             Some(cmd) => self.run_command(cmd)?,
-            None => Args::command().print_help()?,
+            None => cmd.print_help()?,
         }
         Ok(())
     }
@@ -51,6 +57,10 @@ impl Jetbra {
 pub struct Args {
     #[command(subcommand)]
     command: Option<Commands>,
+
+    /// Print author
+    #[arg(long)]
+    author: bool,
 }
 
 #[derive(Subcommand)]

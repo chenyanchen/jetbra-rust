@@ -1,4 +1,4 @@
-pub mod application;
+pub mod app;
 pub mod file;
 pub mod install;
 pub mod jetbra;

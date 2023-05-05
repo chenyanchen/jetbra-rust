@@ -6,7 +6,7 @@ use clap::Args;
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::application::{App, Apps};
+use crate::app::{App, Apps};
 use crate::file;
 use crate::uninstall::Uninstaller;
 
@@ -23,7 +23,7 @@ pub struct Installer {
 pub struct InstallArgs {
     /// Specify applications to install
     #[arg(short, long, value_enum)]
-    app: Option<Vec<Apps>>,
+    pub app: Option<Vec<Apps>>,
 }
 
 impl Installer {
