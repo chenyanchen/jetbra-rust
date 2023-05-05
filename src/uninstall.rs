@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use anyhow::{Context, Result};
 use clap::Args;
 
-use crate::application::{App, Apps};
+use crate::app::{App, Apps};
 use crate::file;
 
 pub struct Uninstaller {
@@ -17,7 +17,7 @@ pub struct Uninstaller {
 pub struct UninstallArgs {
     /// Specify applications to uninstall
     #[arg(short, long, value_enum)]
-    app: Option<Vec<Apps>>,
+    pub app: Option<Vec<Apps>>,
 }
 
 impl Uninstaller {

@@ -6,7 +6,7 @@ use clap::Args;
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::application::{App, Apps};
+use crate::app::{App, Apps};
 use crate::file;
 use crate::uninstall::Uninstaller;
 
@@ -23,7 +23,7 @@ pub struct Installer {
 pub struct InstallArgs {
     /// Specify applications to install
     #[arg(short, long, value_enum)]
-    app: Option<Vec<Apps>>,
+    pub app: Option<Vec<Apps>>,
 }
 
 impl Installer {
@@ -94,10 +94,12 @@ impl Installer {
 }
 
 /// interleave byte to bytes
+/// # Examples
 /// ```
-/// assert_eq!(interleave_byte("Hello".as_bytes(), 'a'), "Haealalaoa")
+/// use jetbra::install::interleave_byte;
+/// assert_eq!(interleave_byte(b"Hello", b'a'), b"Haealalaoa");
 /// ```
-fn interleave_byte(bytes: &[u8], byte: u8) -> Vec<u8> {
+pub fn interleave_byte(bytes: &[u8], byte: u8) -> Vec<u8> {
     bytes.iter().flat_map(|b| vec![*b, byte]).collect()
 }
 
@@ -107,9 +109,6 @@ mod tests {
 
     #[test]
     fn interleave_test() {
-        assert_eq!(
-            interleave_byte("Hello".as_bytes(), b'a'),
-            "Haealalaoa".as_bytes()
-        );
+        assert_eq!(interleave_byte(b"Hello", b'a'), b"Haealalaoa");
     }
 }

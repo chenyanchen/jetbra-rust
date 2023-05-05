@@ -1,10 +1,9 @@
-use std::path::PathBuf;
-
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use clap::{CommandFactory, Parser, Subcommand};
 
-use crate::application::{App, Apps};
+use crate::app::{App, Apps};
 use crate::install::{InstallArgs, Installer};
+use crate::jetbrains;
 use crate::uninstall::{UninstallArgs, Uninstaller};
 
 #[derive(Default)]
@@ -12,9 +11,15 @@ pub struct Jetbra {}
 
 impl Jetbra {
     pub fn run(&self, args: Args) -> Result<()> {
+        let mut cmd = Args::command();
+        if args.author {
+            let author = cmd.get_author().unwrap();
+            println!("{}", author);
+            return Ok(());
+        }
         match &args.command {
             Some(cmd) => self.run_command(cmd)?,
-            None => Args::command().print_help()?,
+            None => cmd.print_help()?,
         }
         Ok(())
     }
@@ -25,24 +30,14 @@ impl Jetbra {
                 let app: App = app.into();
                 println!("{} ({})", app.name, app.short);
             }),
-            Commands::Install(args) => Installer::new(Self::jetbrains_dir()?)
+            Commands::Install(args) => Installer::new(jetbrains::path()?)
                 .install(args)
                 .context("Failed to install")?,
-            Commands::Uninstall(args) => Uninstaller::new(Self::jetbrains_dir()?)
+            Commands::Uninstall(args) => Uninstaller::new(jetbrains::path()?)
                 .uninstall(args)
                 .context("Failed to uninstall")?,
         }
         Ok(())
-    }
-
-    pub fn jetbrains_dir() -> Result<PathBuf> {
-        let home_dir = dirs::home_dir().ok_or(anyhow!("cannot find home directory"))?;
-        // TODO: support Linux and Windows
-        let jetbrains_dir = home_dir
-            .join("Library")
-            .join("Application Support")
-            .join("JetBrains");
-        Ok(jetbrains_dir)
     }
 }
 
@@ -51,6 +46,10 @@ impl Jetbra {
 pub struct Args {
     #[command(subcommand)]
     command: Option<Commands>,
+
+    /// Print author
+    #[arg(long)]
+    author: bool,
 }
 
 #[derive(Subcommand)]
