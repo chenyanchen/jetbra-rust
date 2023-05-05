@@ -94,10 +94,12 @@ impl Installer {
 }
 
 /// interleave byte to bytes
+/// # Examples
 /// ```
-/// assert_eq!(interleave_byte("Hello".as_bytes(), 'a'), "Haealalaoa")
+/// use jetbra::install::interleave_byte;
+/// assert_eq!(interleave_byte(b"Hello", b'a'), b"Haealalaoa");
 /// ```
-fn interleave_byte(bytes: &[u8], byte: u8) -> Vec<u8> {
+pub fn interleave_byte(bytes: &[u8], byte: u8) -> Vec<u8> {
     bytes.iter().flat_map(|b| vec![*b, byte]).collect()
 }
 
@@ -107,9 +109,6 @@ mod tests {
 
     #[test]
     fn interleave_test() {
-        assert_eq!(
-            interleave_byte("Hello".as_bytes(), b'a'),
-            "Haealalaoa".as_bytes()
-        );
+        assert_eq!(interleave_byte(b"Hello", b'a'), b"Haealalaoa");
     }
 }
