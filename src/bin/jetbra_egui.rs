@@ -6,7 +6,7 @@ use eframe::egui::{ComboBox, Ui};
 
 use jetbra::app::{App, Apps};
 use jetbra::install::{InstallArgs, Installer};
-use jetbra::jetbra::Jetbra;
+use jetbra::jetbrains;
 use jetbra::uninstall::{UninstallArgs, Uninstaller};
 
 fn main() -> Result<()> {
@@ -29,7 +29,7 @@ struct JetbraApp {
 
 impl JetbraApp {
     fn new() -> Result<Self> {
-        let jetbrains_dir = Jetbra::jetbrains_dir()?;
+        let jetbrains_dir = jetbrains::path()?;
         Ok(Self {
             apps: Apps::all(),
             installer: Installer::new(jetbrains_dir.clone()),
