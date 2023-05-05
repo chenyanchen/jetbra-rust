@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use anyhow::Result;
-use eframe::egui::{ComboBox, Ui};
+use eframe::egui::Ui;
 use eframe::{egui, Theme};
 
 use jetbra::app::{App, Apps};
@@ -11,8 +11,7 @@ use jetbra::uninstall::{UninstallArgs, Uninstaller};
 
 fn main() -> Result<()> {
     let options = eframe::NativeOptions {
-        initial_window_size: Some(egui::vec2(320.0, 240.0)),
-        resizable: false,
+        initial_window_size: Some(egui::vec2(320.0, 480.0)),
         default_theme: Theme::Light,
         ..Default::default()
     };
@@ -22,44 +21,50 @@ fn main() -> Result<()> {
 }
 
 struct Jetbra {
-    apps: Vec<Apps>,
+    apps: Vec<AppCheckbox>,
     installer: Installer,
     uninstaller: Uninstaller,
+}
 
-    selected_app: Option<Apps>,
+struct AppCheckbox {
+    app: Apps,
+    name: String,
+    selected: bool,
 }
 
 impl Jetbra {
     fn new() -> Result<Self> {
         let jetbrains_dir = jetbrains::path()?;
         Ok(Self {
-            apps: Apps::all(),
+            apps: Apps::all()
+                .iter()
+                .map(|&app| AppCheckbox {
+                    app,
+                    name: App::from(app).name,
+                    selected: true,
+                })
+                .collect(),
             installer: Installer::new(jetbrains_dir.clone()),
             uninstaller: Uninstaller::new(jetbrains_dir),
-            selected_app: None,
         })
     }
 
     fn select_app(&mut self, ui: &mut Ui) {
-        ComboBox::from_label("")
-            .selected_text(match &self.selected_app {
-                None => "All".to_owned(),
-                Some(app) => App::from(*app).name,
-            })
-            .show_ui(ui, |ui| {
-                // All
-                ui.selectable_value(&mut self.selected_app, None, "All");
-                // Apps
-                self.apps.iter().for_each(|app| {
-                    ui.selectable_value(&mut self.selected_app, Some(*app), App::from(*app).name);
-                });
+        let mut all = self.selected_all();
+        if ui.checkbox(&mut all, "All").clicked() {
+            self.apps.iter_mut().for_each(|app| {
+                app.selected = all;
             });
+        }
+        self.apps.iter_mut().for_each(|app| {
+            ui.checkbox(&mut app.selected, &app.name);
+        });
     }
 
-    fn install(&self, ui: &mut egui::Ui) -> Result<()> {
+    fn install(&self, ui: &mut Ui) -> Result<()> {
         if ui.button("Install").clicked() {
             self.installer.install(&InstallArgs {
-                app: self.selected_app.map(|app| vec![app]),
+                app: self.selected_apps(),
             })?;
         }
         Ok(())
@@ -68,10 +73,27 @@ impl Jetbra {
     fn uninstall(&self, ui: &mut Ui) -> Result<()> {
         if ui.button("Uninstall").clicked() {
             self.uninstaller.uninstall(&UninstallArgs {
-                app: self.selected_app.map(|app| vec![app]),
+                app: self.selected_apps(),
             })?;
         }
         Ok(())
+    }
+
+    fn selected_apps(&self) -> Option<Vec<Apps>> {
+        if self.selected_all() {
+            return None;
+        }
+        let apps: Vec<Apps> = self
+            .apps
+            .iter()
+            .filter(|app| app.selected)
+            .map(|app| app.app)
+            .collect();
+        Some(apps)
+    }
+
+    fn selected_all(&self) -> bool {
+        self.apps.iter().filter(|app| app.selected).count() == self.apps.len()
     }
 }
 
@@ -80,14 +102,16 @@ impl eframe::App for Jetbra {
         egui::CentralPanel::default().show(ctx, |ui| {
             // Select app
             self.select_app(ui);
-            // Install
-            if let Err(err) = self.install(ui) {
-                ui.label(err.to_string());
-            }
-            // Uninstall
-            if let Err(err) = self.uninstall(ui) {
-                ui.label(err.to_string());
-            }
+            ui.vertical_centered(|ui| {
+                // Install
+                if let Err(err) = self.install(ui) {
+                    ui.label(err.to_string());
+                };
+                // Uninstall
+                if let Err(err) = self.uninstall(ui) {
+                    ui.label(err.to_string());
+                }
+            });
         });
     }
 }
