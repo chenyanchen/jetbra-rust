@@ -1,9 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
 
-use jetbra::cmd::{Args, Jetbra};
+use jetbra::cmd::{Jetbra, JetbraArgs};
 
 fn main() -> Result<()> {
-    let args = Args::parse();
+    let args = JetbraArgs::parse();
     Jetbra::default().run(args)
 }
