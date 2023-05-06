@@ -70,16 +70,16 @@ impl Installer {
 
             // Update certificate file
             let cert_filepath = path.join(&cert_filename);
-            fs::write(cert_filepath, Self::build_certificate(&app.code))
+            fs::write(cert_filepath, Self::build_certificate(app.code.as_bytes()))
                 .context("Failed write certificate")?;
         }
         Ok(())
     }
 
-    fn build_certificate(active_code: &String) -> Vec<u8> {
+    fn build_certificate(active_code: &[u8]) -> Vec<u8> {
         let header: Vec<u8> = [0xff; 2].to_vec();
         let mut body: Vec<u8> = Vec::from("<certificate-key>\n");
-        body.append(&mut active_code.as_bytes().to_vec());
+        body.append(&mut active_code.to_vec());
         [header, interleave_byte(&body, 0x00)].concat()
     }
 }
