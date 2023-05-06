@@ -2,11 +2,10 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use clap::Args;
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::app::{App, Apps};
+use crate::app::App;
 use crate::file;
 use crate::uninstall::Uninstaller;
 
@@ -19,11 +18,8 @@ pub struct Installer {
     uninstaller: Uninstaller,
 }
 
-#[derive(Args)]
-pub struct InstallArgs {
-    /// Specify applications to install
-    #[arg(short, long, value_enum)]
-    pub app: Option<Vec<Apps>>,
+pub struct Args {
+    pub apps: Vec<App>,
 }
 
 impl Installer {
@@ -42,15 +38,10 @@ impl Installer {
         }
     }
 
-    pub fn install(&self, args: &InstallArgs) -> Result<()> {
+    pub fn install(&self, args: &Args) -> Result<()> {
         self.install_dependencies()
-            .context("Failed to install dependencies")?; // install dependencies
-        match &args.app {
-            Some(apps) => apps.to_owned(), // install specified apps
-            None => Apps::all(),           // install all apps
-        }
-        .iter()
-        .try_for_each(|&app| self.install_app(&app.into()))
+            .context("Failed to install dependencies")?;
+        args.apps.iter().try_for_each(|app| self.install_app(app))
     }
 
     fn install_dependencies(&self) -> Result<()> {

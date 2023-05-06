@@ -1,40 +1,39 @@
 use anyhow::{Context, Result};
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{Args, CommandFactory, Parser, Subcommand};
 
 use crate::app::{App, Apps};
-use crate::install::{InstallArgs, Installer};
-use crate::jetbrains;
-use crate::uninstall::{UninstallArgs, Uninstaller};
+use crate::install::Installer;
+use crate::uninstall::Uninstaller;
+use crate::{install, jetbrains, uninstall};
 
 #[derive(Default)]
 pub struct Jetbra {}
 
 impl Jetbra {
-    pub fn run(&self, args: Args) -> Result<()> {
-        let mut cmd = Args::command();
+    pub fn run(&self, args: JetbraArgs) -> Result<()> {
         if args.author {
-            let author = cmd.get_author().unwrap();
-            println!("{}", author);
+            let cmd = JetbraArgs::command();
+            println!("{}", cmd.get_author().unwrap());
             return Ok(());
         }
         match &args.command {
             Some(cmd) => self.run_command(cmd)?,
-            None => cmd.print_help()?,
+            None => JetbraArgs::command().print_help()?,
         }
         Ok(())
     }
 
     fn run_command(&self, cmd: &Commands) -> Result<()> {
         match cmd {
-            Commands::List => Apps::all().iter().for_each(|&app| {
+            Commands::List => Apps::all().iter().for_each(|app| {
                 let app: App = app.into();
                 println!("{} ({})", app.name, app.short);
             }),
             Commands::Install(args) => Installer::new(jetbrains::path()?)
-                .install(args)
+                .install(&args.into())
                 .context("Failed to install")?,
             Commands::Uninstall(args) => Uninstaller::new(jetbrains::path()?)
-                .uninstall(args)
+                .uninstall(&args.into())
                 .context("Failed to uninstall")?,
         }
         Ok(())
@@ -43,7 +42,7 @@ impl Jetbra {
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-pub struct Args {
+pub struct JetbraArgs {
     #[command(subcommand)]
     command: Option<Commands>,
 
@@ -59,5 +58,40 @@ enum Commands {
     /// Install jetbra for current user
     Install(InstallArgs),
     /// Uninstall jetbra for current user
-    Uninstall(UninstallArgs),
+    Uninstall(InstallArgs),
+}
+
+#[derive(Args)]
+struct InstallArgs {
+    /// Specify applications to install
+    #[arg(short, long, value_enum)]
+    app: Option<Vec<Apps>>,
+}
+
+impl From<&InstallArgs> for install::Args {
+    fn from(args: &InstallArgs) -> Self {
+        match &args.app {
+            None => install::Args {
+                apps: Apps::all().iter().map(|app| app.into()).collect(),
+            },
+            Some(apps) => install::Args {
+                apps: apps.iter().map(|app| app.into()).collect(),
+            },
+        }
+    }
+}
+
+impl From<&InstallArgs> for uninstall::Args {
+    fn from(args: &InstallArgs) -> Self {
+        match &args.app {
+            None => uninstall::Args {
+                remove_dependencies: true,
+                apps: Apps::all().iter().map(|app| app.into()).collect(),
+            },
+            Some(apps) => uninstall::Args {
+                remove_dependencies: false,
+                apps: apps.iter().map(|app| app.into()).collect(),
+            },
+        }
+    }
 }

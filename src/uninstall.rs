@@ -2,9 +2,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use clap::Args;
 
-use crate::app::{App, Apps};
+use crate::app::App;
 use crate::file;
 
 pub struct Uninstaller {
@@ -13,11 +12,9 @@ pub struct Uninstaller {
     vmoptions_prefixes: Vec<String>,
 }
 
-#[derive(Args)]
-pub struct UninstallArgs {
-    /// Specify applications to uninstall
-    #[arg(short, long, value_enum)]
-    pub app: Option<Vec<Apps>>,
+pub struct Args {
+    pub remove_dependencies: bool,
+    pub apps: Vec<App>,
 }
 
 impl Uninstaller {
@@ -34,17 +31,12 @@ impl Uninstaller {
         }
     }
 
-    pub fn uninstall(&self, args: &UninstallArgs) -> Result<()> {
-        match &args.app {
-            Some(apps) => apps.to_owned(), // uninstall specified apps
-            None => {
-                self.remove_dependencies()
-                    .context("Failed to remove dependencies")?;
-                Apps::all() // uninstall all apps
-            }
+    pub fn uninstall(&self, args: &Args) -> Result<()> {
+        if args.remove_dependencies {
+            self.remove_dependencies()
+                .context("Failed to remove dependencies")?;
         }
-        .iter()
-        .try_for_each(|&app| self.uninstall_app(&app.into()))
+        args.apps.iter().try_for_each(|app| self.uninstall_app(app))
     }
 
     fn remove_dependencies(&self) -> Result<()> {
