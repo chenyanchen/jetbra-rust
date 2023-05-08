@@ -11,11 +11,6 @@ pub struct Jetbra {}
 
 impl Jetbra {
     pub fn run(&self, args: JetbraArgs) -> Result<()> {
-        if args.author {
-            let cmd = JetbraArgs::command();
-            println!("{}", cmd.get_author().unwrap());
-            return Ok(());
-        }
         match &args.command {
             Some(cmd) => self.run_command(cmd)?,
             None => JetbraArgs::command().print_help()?,
@@ -45,10 +40,6 @@ impl Jetbra {
 pub struct JetbraArgs {
     #[command(subcommand)]
     command: Option<Commands>,
-
-    /// Print author
-    #[arg(long)]
-    author: bool,
 }
 
 #[derive(Subcommand)]
