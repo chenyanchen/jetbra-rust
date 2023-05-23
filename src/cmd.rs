@@ -54,7 +54,7 @@ enum Commands {
 
 #[derive(Args)]
 struct InstallArgs {
-    /// Specify applications to install
+    /// Specify apps, all by default
     #[arg(short, long, value_enum)]
     app: Option<Vec<Apps>>,
 }
