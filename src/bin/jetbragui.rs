@@ -40,7 +40,7 @@ impl Jetbra {
                 .iter()
                 .map(|&app| AppCheckbox {
                     app,
-                    name: App::from(&app).name,
+                    name: App::from(app).name,
                     selected: true,
                 })
                 .collect(),
@@ -84,7 +84,7 @@ impl Jetbra {
         self.app_checkboxes
             .iter()
             .filter(|b| b.selected)
-            .map(|b| App::from(&b.app))
+            .map(|b| App::from(b.app))
             .collect::<Vec<App>>()
     }
 
