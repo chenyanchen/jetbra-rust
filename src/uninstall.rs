@@ -50,11 +50,11 @@ impl Uninstaller {
         let vmoptions_filename = format!("{}.vmoptions", app.short);
         let cert_filename = format!("{}.key", app.short);
 
-        for path in file::find_dirs_by_prefix(&self.jetbrains_dir, &app.concat_name())
+        for path in file::find_directories_with_prefix(&self.jetbrains_dir, &app.concat_name())
             .context("Failed to find dirs by prefix")?
         {
             let vmoptions_filepath = path.join(&vmoptions_filename);
-            file::remove_lines_by_prefixes(&vmoptions_filepath, &self.vmoptions_prefixes)
+            file::remove_lines_with_prefixes(&vmoptions_filepath, &self.vmoptions_prefixes)
                 .context("Failed to remove lines by prefixes")?;
 
             let cert_filepath = path.join(&cert_filename);
