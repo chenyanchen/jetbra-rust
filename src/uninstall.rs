@@ -9,7 +9,7 @@ use crate::file;
 pub struct Uninstaller {
     jetbrains_dir: PathBuf,
     plugins_dir: PathBuf,
-    vmoptions_prefixes: Vec<String>,
+    vmoptions_prefixes: Vec<&'static str>,
 }
 
 pub struct Args {
@@ -24,9 +24,9 @@ impl Uninstaller {
             jetbrains_dir,
             plugins_dir,
             vmoptions_prefixes: vec![
-                "--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED".into(),
-                "--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED".into(),
-                "-javaagent:".into(),
+                "--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED",
+                "--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED",
+                "-javaagent:",
             ],
         }
     }

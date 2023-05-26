@@ -6,7 +6,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::Result;
 
 /// Removes all lines from a file that start with any of the given prefixes.
-pub fn remove_lines_with_prefixes(path: &Path, prefixes: &[String]) -> Result<()> {
+pub fn remove_lines_with_prefixes<P, S>(path: P, prefixes: &[S]) -> Result<()>
+where
+    P: AsRef<Path>,
+    S: AsRef<str>,
+{
+    let path = path.as_ref();
     // If the file doesn't exist, there's nothing to do.
     if !path.exists() {
         return Ok(());
@@ -29,7 +34,10 @@ pub fn remove_lines_with_prefixes(path: &Path, prefixes: &[String]) -> Result<()
         let line = line?;
 
         // If the line doesn't start with any of the given prefixes, write it to the new file.
-        if !prefixes.iter().any(|prefix| line.starts_with(prefix)) {
+        if !prefixes
+            .iter()
+            .any(|prefix| line.starts_with(prefix.as_ref()))
+        {
             writeln!(writer, "{}", line)?;
         }
     }
@@ -69,14 +77,18 @@ pub fn find_directories_with_prefix(dir: &Path, prefix: &str) -> Result<Vec<Path
 }
 
 /// Appends the given lines to the end of the file at the given path.
-pub fn append_lines_to_file<P: AsRef<Path>>(path: P, lines: &[String]) -> Result<()> {
+pub fn append_lines_to_file<P, S>(path: P, lines: &[S]) -> Result<()>
+where
+    P: AsRef<Path>,
+    S: AsRef<str>,
+{
     // Open the file in append mode, creating it if it doesn't exist.
     let file = OpenOptions::new().append(true).create(true).open(path)?;
     let mut writer = BufWriter::new(file);
 
     // Write each line to the file.
     for line in lines {
-        writeln!(writer, "{}", line)?;
+        writeln!(writer, "{}", line.as_ref())?;
     }
 
     Ok(())
