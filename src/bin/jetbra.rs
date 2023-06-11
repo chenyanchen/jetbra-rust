@@ -1,16 +1,26 @@
 use anyhow::{Context, Result};
 use clap::{Args, CommandFactory, Parser, Subcommand};
 
-use crate::app::{App, Apps};
-use crate::install::Installer;
-use crate::uninstall::Uninstaller;
-use crate::{install, jetbrains, uninstall};
+use jetbra::app::{App, Apps};
+use jetbra::{
+    install::{self, Installer},
+    jetbrains,
+    uninstall::{self, Uninstaller},
+};
 
-#[derive(Default)]
-pub struct Jetbra {}
+fn main() -> Result<()> {
+    let args = JetbraArgs::parse();
+    Jetbra::new().run(args)
+}
+
+struct Jetbra {}
 
 impl Jetbra {
-    pub fn run(&self, args: JetbraArgs) -> Result<()> {
+    fn new() -> Self {
+        Self {}
+    }
+
+    fn run(&self, args: JetbraArgs) -> Result<()> {
         match &args.command {
             Some(cmd) => self.run_command(cmd)?,
             None => JetbraArgs::command().print_help()?,
@@ -20,7 +30,7 @@ impl Jetbra {
 
     fn run_command(&self, cmd: &Commands) -> Result<()> {
         match cmd {
-            Commands::List => Apps::all().iter().for_each(|app| {
+            Commands::List => Apps::all().iter().for_each(|&app| {
                 let app: App = app.into();
                 println!("{} ({})", app.name, app.short);
             }),
@@ -37,7 +47,7 @@ impl Jetbra {
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-pub struct JetbraArgs {
+struct JetbraArgs {
     #[command(subcommand)]
     command: Option<Commands>,
 }
@@ -63,10 +73,10 @@ impl From<&InstallArgs> for install::Args {
     fn from(args: &InstallArgs) -> Self {
         match &args.app {
             None => install::Args {
-                apps: Apps::all().iter().map(|app| app.into()).collect(),
+                apps: Apps::all().iter().map(|&app| app.into()).collect(),
             },
             Some(apps) => install::Args {
-                apps: apps.iter().map(|app| app.into()).collect(),
+                apps: apps.iter().map(|&app| app.into()).collect(),
             },
         }
     }
@@ -77,11 +87,11 @@ impl From<&InstallArgs> for uninstall::Args {
         match &args.app {
             None => uninstall::Args {
                 remove_dependencies: true,
-                apps: Apps::all().iter().map(|app| app.into()).collect(),
+                apps: Apps::all().iter().map(|&app| app.into()).collect(),
             },
             Some(apps) => uninstall::Args {
                 remove_dependencies: false,
-                apps: apps.iter().map(|app| app.into()).collect(),
+                apps: apps.iter().map(|&app| app.into()).collect(),
             },
         }
     }

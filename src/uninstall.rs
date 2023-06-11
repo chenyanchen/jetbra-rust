@@ -9,7 +9,7 @@ use crate::file;
 pub struct Uninstaller {
     jetbrains_dir: PathBuf,
     plugins_dir: PathBuf,
-    vmoptions_prefixes: Vec<String>,
+    vmoptions_prefixes: Vec<&'static str>,
 }
 
 pub struct Args {
@@ -24,9 +24,9 @@ impl Uninstaller {
             jetbrains_dir,
             plugins_dir,
             vmoptions_prefixes: vec![
-                "--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED".into(),
-                "--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED".into(),
-                "-javaagent:".into(),
+                "--add-opens=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED",
+                "--add-opens=java.base/jdk.internal.org.objectweb.asm.tree=ALL-UNNAMED",
+                "-javaagent:",
             ],
         }
     }
@@ -50,11 +50,11 @@ impl Uninstaller {
         let vmoptions_filename = format!("{}.vmoptions", app.short);
         let cert_filename = format!("{}.key", app.short);
 
-        for path in file::find_dirs_by_prefix(&self.jetbrains_dir, &app.concat_name())
+        for path in file::find_directories_with_prefix(&self.jetbrains_dir, &app.concat_name())
             .context("Failed to find dirs by prefix")?
         {
             let vmoptions_filepath = path.join(&vmoptions_filename);
-            file::remove_lines_by_prefixes(&vmoptions_filepath, &self.vmoptions_prefixes)
+            file::remove_lines_with_prefixes(&vmoptions_filepath, &self.vmoptions_prefixes)
                 .context("Failed to remove lines by prefixes")?;
 
             let cert_filepath = path.join(&cert_filename);
