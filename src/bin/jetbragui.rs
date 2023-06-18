@@ -28,7 +28,7 @@ struct Jetbra {
 
 struct AppCheckbox {
     app: Apps,
-    name: &'static str,
+    name: String,
     selected: bool,
 }
 
@@ -57,7 +57,7 @@ impl Jetbra {
             });
         }
         self.app_checkboxes.iter_mut().for_each(|b| {
-            ui.checkbox(&mut b.selected, b.name);
+            ui.checkbox(&mut b.selected, b.name.clone());
         });
     }
 
