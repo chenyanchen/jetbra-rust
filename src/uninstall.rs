@@ -47,8 +47,8 @@ impl Uninstaller {
     }
 
     pub fn uninstall_app(&self, app: &App) -> Result<()> {
-        let vmoptions_filename = format!("{}.vmoptions", app.short);
-        let cert_filename = format!("{}.key", app.short);
+        let vmoptions_filename = format!("{}.vmoptions", app.shortname);
+        let cert_filename = format!("{}.key", app.shortname);
 
         for path in file::find_directories_with_prefix(&self.jetbrains_dir, &app.concat_name())
             .context("Failed to find dirs by prefix")?

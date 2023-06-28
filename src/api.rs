@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use crate::app::App;
 
 #[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct GetActiveCodeRequest {
     token: String,
     serial_number: String,
@@ -21,7 +20,6 @@ impl GetActiveCodeRequest {
 }
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct GetActiveCodeResponse {
     pub apps: Vec<App>,
 }

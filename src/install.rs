@@ -57,8 +57,8 @@ impl Installer {
             .uninstall_app(app)
             .context("Failed to uninstall")?;
 
-        let vmoptions_filename = format!("{}.vmoptions", app.short);
-        let cert_filename = format!("{}.key", app.short);
+        let vmoptions_filename = format!("{}.vmoptions", app.shortname);
+        let cert_filename = format!("{}.key", app.shortname);
 
         for path in file::find_directories_with_prefix(&self.jetbrains_dir, &app.concat_name())
             .context("Failed to find dirs by prefix")?
@@ -70,8 +70,11 @@ impl Installer {
 
             // Update certificate file
             let cert_filepath = path.join(&cert_filename);
-            fs::write(cert_filepath, Self::build_certificate(app.code.as_bytes()))
-                .context("Failed write certificate")?;
+            fs::write(
+                cert_filepath,
+                Self::build_certificate(app.active_code.as_bytes()),
+            )
+            .context("Failed write certificate")?;
         }
         Ok(())
     }

@@ -29,6 +29,9 @@ impl Jetkit {
     }
 
     async fn install(&self, token: String) -> Result<()> {
+        if token.len() != 22 {
+            return Err(anyhow::anyhow!("Invalid token"));
+        }
         // get active code
         let req = GetActiveCodeRequest::new(token, hardware::serial_number()?);
         let resp = api::get_active_code(&req).await?;
@@ -36,6 +39,9 @@ impl Jetkit {
         self.installer.install(&install::Args { apps: resp.apps })
     }
 }
+
+// WVi9iGJvqskzUBwzmC4goT
+// ZiDyvBmVjkaLCeBF9YkRBz
 
 #[derive(Parser, Debug)]
 #[command(author, version, long_about, verbatim_doc_comment)]

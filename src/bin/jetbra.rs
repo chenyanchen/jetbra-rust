@@ -32,7 +32,7 @@ impl Jetbra {
         match cmd {
             Commands::List => Apps::all().iter().for_each(|&app| {
                 let app: App = app.into();
-                println!("{} ({})", app.name, app.short);
+                println!("{} ({})", app.name, app.shortname);
             }),
             Commands::Install(args) => Installer::new(jetbrains::path()?)
                 .install(&args.into())
