@@ -2,11 +2,11 @@
 
 ## What is it?
 
-A CLI tool to activate JetBrains products.
+jetbra-rust is a CLI tool to activate JetBrains products.
 
 ## Why use it?
 
-Why not?
+It's free.
 
 ## How to use it?
 
