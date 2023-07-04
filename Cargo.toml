@@ -11,9 +11,9 @@ description = "A CLI tool to activate JetBrains products"
 anyhow = "1.0"
 clap = { version = "4.3", features = ["derive"] }
 dirs = "5.0"
-eframe = "0.21.3"
-flate2 = "1.0.26"
-tar = "0.4.38"
+eframe = "0.22"
+flate2 = "1.0"
+tar = "0.4"
 
 # See Minimizing Rust Binary Size at https://github.com/johnthagen/min-sized-rust
 
