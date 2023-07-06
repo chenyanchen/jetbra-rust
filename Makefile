@@ -6,16 +6,20 @@ build:
 	cargo build --release --target aarch64-apple-darwin
 	cargo build --release --target x86_64-apple-darwin
 
-UNIVERSAL_PATH := target/apple-darwin/release
+VERSION = $(shell git describe --tags --always --dirty)
 
 dist: build
-	mkdir -p $(UNIVERSAL_PATH)
-	# Create universal binary
-	lipo -create -output $(UNIVERSAL_PATH)/jetbra target/*-apple-darwin/release/jetbra
+	mkdir -p dist && rm -r dist/*
 
-	# Create .tar.gz
-	mkdir -p dist
-	tar czf dist/jetbra_macos.tar.gz $(UNIVERSAL_PATH)/jetbra
+	cp target/aarch64-apple-darwin/release/jetbra jetbra
+	tar czf dist/jetbra-$(VERSION)-aarch64-apple-darwin.tar.gz jetbra
 
-	# checksums.txt
+	cp target/x86_64-apple-darwin/release/jetbra jetbra
+	tar czf dist/jetbra-$(VERSION)-x86_64-apple-darwin.tar.gz jetbra
+
+	lipo -create -output jetbra target/*-apple-darwin/release/jetbra
+	tar czf dist/jetbra-$(VERSION)-universal-apple-darwin.tar.gz jetbra
+
+	rm jetbra
+
 	shasum -a 256 dist/* > dist/checksums.txt
