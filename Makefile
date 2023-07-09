@@ -22,4 +22,8 @@ dist: build
 
 	rm jetbra
 
+	lipo -create -output jetkit target/*-apple-darwin/release/jetkit
+	tar czf dist/jetkit-$(VERSION)-universal-apple-darwin.tar.gz jetkit
+	rm jetkit
+
 	shasum -a 256 dist/* > dist/checksums.txt
