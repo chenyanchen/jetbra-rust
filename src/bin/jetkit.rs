@@ -52,6 +52,6 @@ impl Jetkit {
 ///   2. Run `jetkit [TOKEN]` in terminal.
 ///   3. Restart JetBrains products.
 struct Args {
-    /// Token to active JetBrains products, get it from https://account.jetbrains.com/licenses
+    /// Token to active JetBrains products, get from c745539141@gamil.com.
     token: Option<String>,
 }
